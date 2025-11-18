@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>🎄 Find Santa’s Gift!</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, "Noto Sans TC", sans-serif;
+      text-align: center;
+      margin-top: 30px;
+      background: #fffdf7;
+      color: #2f3b2f;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      color: #c62828; /* Christmas red */
+      letter-spacing: 0.5px;
+    }
+
+    #subtitle {
+      margin: 0 0 16px;
+      color: #2e7d32; /* Christmas green */
+      font-weight: 600;
+    }
+
+    #map {
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      cursor: crosshair;
+      border: 4px solid #e8e0c9; /* warm gold frame */
+    }
+
+    #distance {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 14px;
+    }
+
+    /* Hint colors (聖誕風配色對應熱/冷層級) */
+    .hint-boil { color: #b71c1c; }   /* 炉火超熱：深紅 */
+    .hint-rhot { color: #d84315; }   /* 很熱：暖橘 */
+    .hint-hot  { color: #f9a825; }   /* 熱：金黃 */
+    .hint-warm { color: #2e7d32; }   /* 溫暖：綠 */
+    .hint-cold { color: #1e88e5; }   /* 冷：藍 */
+    .hint-vcold{ color: #1565c0; }   /* 很冷：深藍 */
+    .hint-freeze { color: #283593; } /* 結凍：靛紫藍 */
+
+    /* 小提示條 */
+    .legend {
+      margin: 14px auto 0;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎄 Find Santa’s Gift!</h1>
+  <p id="subtitle">在地圖上點擊找出🎁聖誕禮物的位置（越接近提示越「暖」）</p>
+
+  <!-- 你可以換成任何 400×400 的聖誕圖片，先沿用原圖尺寸 -->
+  <img
+    id="map"
+    width="400"
+    height="400"
+    src="https://nostarch.com/images/treasuremap.png"
+    alt="Holiday Map"
+  >
+
+  <p id="distance"></p>
+  <div class="legend">提示示意：🔥 爐火暖紅 &rarr; 🙂 溫暖 &rarr; 🥶 極凍寒藍</div>
+
+  <script src="https://code.jquery.com/jquery-2.1.0.js"></script>
+  <script>
+    // 與原版一致的尺寸與狀態
+    var width = 400;
+    var height = 400;
+    var clicks = 0;
+    var locked = false;
+
+    function getRandomNumber(size) {
+      return Math.floor(Math.random() * size);
+    }
+
+    function getDistance(event, target) {
+      var diffX = event.offsetX - target.x;
+      var diffY = event.offsetY - target.y;
+      return Math.sqrt(diffX * diffX + diffY * diffY);
+    }
+
+    // 將距離對應為聖誕感提示與對應顏色 class
+    function getDistanceHint(distance) {
+      if (distance < 15) {
+        // 最靠近：爐火邊、紅襪旁
+        return { text: "🔥 爐火旁邊！禮物就在聖誕襪旁～", cls: "hint-boil" };
+      } else if (distance < 35) {
+        return { text: "🌶️ 非常接近！彷彿聞到熱可可香氣", cls: "hint-rhot" };
+      } else if (distance < 50) {
+        return { text: "🌡️ 熱熱的～聖誕樹下傳來鈴鐺聲", cls: "hint-hot" };
+      } else if (distance < 100) {
+        return { text: "🙂 溫暖～你靠近了聖誕樹與禮物堆", cls: "hint-warm" };
+      } else if (distance < 150) {
+        return { text: "🧊 有點冷～往壁爐方向走走看", cls: "hint-cold" };
+      } else if (distance < 300) {
+        return { text: "❄️ 很冷～你正走向雪人村外圍", cls: "hint-vcold" };
+      } else {
+        return { text: "🥶 極凍！你在北極風雪裡迷路了", cls: "hint-freeze" };
+      }
+    }
+
+    // 隨機禮物位置
+    var target = { x: getRandomNumber(width), y: getRandomNumber(height) };
+
+    // 點擊地圖的處理
+    $("#map").click(function(event) {
+      if (locked) return;
+
+      clicks++;
+      var distance = getDistance(event, target);
+      var hint = getDistanceHint(distance);
+
+      $("#distance").attr("class", "").addClass(hint.cls).text(hint.text);
+
+      if (distance < 8) {
+        locked = true;
+        alert("🎁 找到聖誕禮物！你用了 " + clicks + " 次點擊！");
+      }
+    });
+  </script>
+</body>
+</html>
+

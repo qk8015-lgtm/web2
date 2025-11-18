@@ -39,6 +39,45 @@
     .btn-primary:hover{ filter: brightness(.95); }
     /* 將原本深色大區塊改為粉紅底 */
     .bg-dark{ background-color:#f472b6 !important; }
+     .weather-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #FFF4B8;          /* 淡奶油黃 */
+    color: #333;                   /* 深灰文字 */
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .weather-btn:hover {
+    background: #FFEFA1;          /* hover 更亮 */
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  }
+  .dog-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #FFF4B8;   /* 淡黃色 */
+    color: #333;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .dog-btn:hover {
+    background: #FFEFA1;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  }
+
+  .dog-img {
+    max-width: 280px;
+    border-radius: 12px;
+    margin-top: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
   </style>
 </head>
 
@@ -51,6 +90,24 @@
     </div>
   </div>
   <!-- Spinner End -->
+<!-- 天氣區塊 -->
+<div class="container" style="margin-top:40px;">
+  <h2>🌤 即時天氣查詢</h2>
+
+  <label>請輸入城市（中文或英文皆可）</label>
+  <input 
+    id="weatherInput" 
+    type="text" 
+    placeholder="例：Taipei、Tokyo、Kaohsiung"
+    style="padding:8px;width:100%;max-width:300px;margin-bottom:10px;"
+  >
+
+  <button class="weather-btn" onclick="getWeather()">
+    查詢天氣
+  </button>
+
+  <div id="weatherResult" style="margin-top:20px;font-size:16px;"></div>
+</div>
 
   <!-- Navbar Start -->
   <div class="container-fluid nav-section border-0">
@@ -120,6 +177,19 @@
     </div>
   </div>
   <!-- Header End -->
+  <!-- 狗狗圖片 API 區塊 -->
+<div class="container" style="margin-top:40px;">
+  <h2>🐶 隨機狗狗圖片</h2>
+
+  <button class="dog-btn" onclick="getDogImage()">
+    換一隻狗狗！
+  </button>
+
+  <div id="dogResult" style="margin-top:20px;">
+    <p style="color:#777;">按上方按鈕獲得一隻隨機可愛狗狗 🐕</p>
+  </div>
+</div>
+
 
   <!-- About Start -->
   <div class="container-fluid" id="pigraAbout">
@@ -650,6 +720,69 @@
   <script src="lib/owlcarousel/owl.carousel.min.js"></script>
 
   <!-- Template Javascript -->
+  <script>
+  async function getWeather() {
+    const city = document.getElementById("weatherInput").value.trim();
+    const result = document.getElementById("weatherResult");
+
+    if (!city) {
+      result.textContent = "請先輸入城市名稱！";
+      return;
+    }
+
+    result.textContent = "查詢中…";
+
+    try {
+      const url = `https://wttr.in/${encodeURIComponent(city)}?format=j1`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const current = data.current_condition?.[0];
+
+      if (!current) {
+        result.textContent = "查不到這個城市，請確認名稱是否正確。";
+        return;
+      }
+
+      result.innerHTML = `
+        <p><strong>📍 城市：</strong> ${city}</p>
+        <p><strong>🌡 溫度：</strong> ${current.temp_C}°C</p>
+        <p><strong>😌 體感溫度：</strong> ${current.FeelsLikeC}°C</p>
+        <p><strong>🌥 天氣狀況：</strong> ${current.weatherDesc[0].value}</p>
+        <p><strong>💧 濕度：</strong> ${current.humidity}%</p>
+        <p><strong>💨 風速：</strong> ${current.windspeedKmph} km/h</p>
+      `;
+    } catch (error) {
+      result.textContent = "⚠ 發生問題，請稍後再試。";
+    }
+  }
+</script>
+<script>
+  async function getDogImage() {
+    const result = document.getElementById("dogResult");
+    result.innerHTML = "載入中…🐕";
+
+    try {
+      const url = "https://random.dog/woof.json";
+      const response = await fetch(url);
+      const data = await response.json();
+
+      // 避免影片（API 有時候會給 mp4）
+      if (data.url.endsWith(".mp4") || data.url.endsWith(".webm")) {
+        return getDogImage(); // 再抓一次
+      }
+
+      result.innerHTML = `
+        <img src="${data.url}" alt="dog" class="dog-img">
+      `;
+    } catch (error) {
+      result.innerHTML = "⚠ 無法取得狗狗圖片，請稍後再試。";
+    }
+  }
+</script>
+
+
+
   <script src="js/main.js"></script>
 </body>
 </html>
